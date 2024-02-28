@@ -9,13 +9,13 @@
 // float G[12] = {1, 0, 0, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, 0, 0, 1};
 // float GT[12] = {1, 0.5, 0.5, 0, 0, 0.5, -0.5, 0, 0, 0.5, 0.5, 1};
 
-double what_time_is_it_now() {
-    struct timeval time;
-    if (gettimeofday(&time, NULL)) {
-        return 0;
-    }
-    return (double)time.tv_sec + (double)time.tv_usec * .000001;
-}
+// double what_time_is_it_now() {
+//     struct timeval time;
+//     if (gettimeofday(&time, NULL)) {
+//         return 0;
+//     }
+//     return (double)time.tv_sec + (double)time.tv_usec * .000001;
+// }
 // 优化https://blog.csdn.net/denlee/article/details/4206923
 void dot(float* A, int row_A, int col_A, float* B, int row_B, int col_B, float* C) {
     assert(col_A == row_B);              // && row_A == col_B
