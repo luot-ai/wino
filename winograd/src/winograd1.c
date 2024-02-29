@@ -1,5 +1,6 @@
 #include "winograd1.h"
 #include "common.h"
+#include "gem5/m5ops.h"
 
 void im2col_winograd1(float* data_im, int channels, int height, int width, int ksize, int stride, int m, int r,
                       float* data_col) {

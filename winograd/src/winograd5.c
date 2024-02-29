@@ -1,5 +1,6 @@
 #include "winograd5.h"
 #include "common.h"
+#include "gem5/m5ops.h"
 
 void winograd5_2d(float* U, float* d, float* result) {
     float BTd[16] = {0};
