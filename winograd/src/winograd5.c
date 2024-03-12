@@ -28,19 +28,15 @@ void winograd5_2d(float* U, float* d, float* result) {
     for (int i = 0; i < 4; i++)
         V[3 + i * 4] = BTd[1 + i * 4] - BTd[3 + i * 4];
 
+    // for (int i=0;i<16;i++)
+    //     UV[i]=U[i]*V[i];
     multi(U, 4, 4, V, 4, 4, UV);
-
     // dot(AT, 2, 4, UV, 4, 4, ATUV);
     for (int i = 0; i < 4; i++)
         ATUV[i] = UV[0 + i] + UV[4 + i] + UV[8 + i];
     for (int i = 0; i < 4; i++)
         ATUV[4 + i] = UV[4 + i] - UV[8 + i] - UV[12 + i];
 
-    // dot(ATUV, 2, 4, A, 4, 2, result);
-    // for(int i=0;i<2;i++)
-    //     result[0+i*2] = ATUV[0+i*4] + ATUV[1+i*4] + ATUV[2+i*4];
-    // for(int i=0;i<2;i++)
-    //     result[1+i*2] = ATUV[1+i*4] - ATUV[2+i*4] - ATUV[3+i*4];
     result[0] += (ATUV[0] + ATUV[1] + ATUV[2]);
     result[2] += (ATUV[4] + ATUV[5] + ATUV[6]);
     result[1] += (ATUV[1] - ATUV[2] - ATUV[3]);
