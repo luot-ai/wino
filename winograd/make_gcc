@@ -1,0 +1,6 @@
+gcc -std=c99 -O2 common.c conv0.c innermain.c winograd1.c winograd2.c winograd3.c winograd4.c winograd5.c -o main
+gcc -std=c99 -Ofast common.c conv0.c innermain.c winograd1.c winograd2.c winograd3.c winograd4.c winograd5.c -o main
+
+gcc -std=c99 -Ofast winograd5.c -o winograd5.o
+objdump -d winograd5.o> example.asm
+
