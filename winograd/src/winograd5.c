@@ -1,6 +1,14 @@
+/*
+ * @Author: lt 1035768203@qq.com
+ * @Date: 2024-03-04 16:34:34
+ * @LastEditors: lt 1035768203@qq.com
+ * @LastEditTime: 2024-03-15 14:11:04
+ * @FilePath: \accler\darknet\LearnAndTry\winograd\src\winograd5.c
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ */
 #include "winograd5.h"
 #include "common.h"
-#include "gem5/m5ops.h"
+//#include "gem5/m5ops.h"
 
 void winograd5_2d(float* U, float* d, float* result) {
     float BTd[16] = {0};
@@ -31,6 +39,7 @@ void winograd5_2d(float* U, float* d, float* result) {
     // for (int i=0;i<16;i++)
     //     UV[i]=U[i]*V[i];
     multi(U, 4, 4, V, 4, 4, UV);
+
     // dot(AT, 2, 4, UV, 4, 4, ATUV);
     for (int i = 0; i < 4; i++)
         ATUV[i] = UV[0 + i] + UV[4 + i] + UV[8 + i];
@@ -41,6 +50,10 @@ void winograd5_2d(float* U, float* d, float* result) {
     result[2] += (ATUV[4] + ATUV[5] + ATUV[6]);
     result[1] += (ATUV[1] - ATUV[2] - ATUV[3]);
     result[3] += (ATUV[5] - ATUV[6] - ATUV[7]);
+    // result[0] = (ATUV[0] + ATUV[1] + ATUV[2]);
+    // result[2] = (ATUV[4] + ATUV[5] + ATUV[6]);
+    // result[1] = (ATUV[1] - ATUV[2] - ATUV[3]);
+    // result[3] = (ATUV[5] - ATUV[6] - ATUV[7]);
 }
 
 void convolutional_winograd5(float* transformed_g, float* d, float* result, int height, int width, int channels, int n,
