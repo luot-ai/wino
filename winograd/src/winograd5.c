@@ -1,8 +1,8 @@
 /*
  * @Author: lt 1035768203@qq.com
- * @Date: 2024-03-04 16:34:34
+ * @Date: 2024-03-16 09:53:17
  * @LastEditors: lt 1035768203@qq.com
- * @LastEditTime: 2024-03-15 14:11:04
+ * @LastEditTime: 2024-03-30 10:08:04
  * @FilePath: \accler\darknet\LearnAndTry\winograd\src\winograd5.c
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -77,14 +77,151 @@ void convolutional_winograd5(float* transformed_g, float* d, float* result, int 
         for (int c = 0; c < channels; c++)  //卷积核通道循环
         {
             temp_U_c = c * height_col_width_col_16;
-            // temp_d_c = c * height_col_width_col_4;
+            // float* ker_addr = nn * channels * 16 + c * 16 + transformed_g;
+            // ld_tile4(ker_addr[0]);
+            // ld_tile5(ker_addr[4]);
+            // ld_tile6(ker_addr[8]);
+            // ld_tile7(ker_addr[12]);
             for (int h = 0; h < height_col; h++) {
                 temp_U_h = h * width_col_16;
                 temp_d_h = h * width_col_4;
                 for (int w = 0; w < width_col; w++)
+                    // winograd5_2d_custom(temp_U_c + temp_U_h + w * 16 + d,temp_d_nn + temp_d_h + w * 4 + result);
                     winograd5_2d(nn * channels * 16 + c * 16 + transformed_g, temp_U_c + temp_U_h + w * 16 + d,
                                  temp_d_nn + temp_d_h + w * 4 + result);  // temp_U_nn ++ temp_d_c
             }
         }
     }
+}
+
+void winograd5_2d_custom(float* d, float* result) {
+
+    ld_tile0(d[0]);
+    ld_tile1(d[4]);
+    ld_tile2(d[8]);
+    ld_tile3(d[12]);
+    ld_tile8(result[0]);
+
+    aamul_02();
+    aamul_1221();
+    aamul_31();
+    triadd_012();
+    triadd_321();
+    oacc();
+
+    wb_tile(*result);
+}
+
+static void ld_tile0(int addr){
+	__asm__ __volatile__(
+        "ldtilea x0,%1,x0"
+		:
+		:"r"(addr)
+		);
+}
+static void ld_tile1(int addr){
+	__asm__ __volatile__(
+        "ldtileb x0,%1,x0"
+		:
+		:"r"(addr)
+		);
+}
+static void ld_tile2(int addr) {
+    __asm__ __volatile__(
+        "ldtilec x0,%1,x0"
+        :
+        :"r"(addr)
+    );
+}
+static void ld_tile3(int addr) {
+    __asm__ __volatile__(
+        "ldtiled x0,%1,x0"
+        :
+        :"r"(addr)
+    );
+}
+static void ld_tile4(int addr) {
+    __asm__ __volatile__(
+        "ldtilee x0,%1,x0"
+        :
+        :"r"(addr)
+    );
+}
+static void ld_tile5(int addr) {
+    __asm__ __volatile__(
+        "ldtilef x0,%1,x0"
+        :
+        :"r"(addr)
+    );
+}
+static void ld_tile6(int addr) {
+    __asm__ __volatile__(
+        "ldtileg x0,%1,x0"
+        :
+        :"r"(addr)
+    );
+}
+static void ld_tile7(int addr) {
+    __asm__ __volatile__(
+        "ldtileh x0,%1,x0"
+        :
+        :"r"(addr)
+    );
+}
+static void ld_tile8(int addr) {
+    __asm__ __volatile__(
+        "ldtileo x0,%1,x0"
+        :
+        :"r"(addr)
+    );
+}
+static void wb_tile(int addr) {
+    __asm__ __volatile__(
+        "wbtile x0,%1,x0"
+        :
+        :"r"(addr)
+    );
+}
+
+static void aamul_02() {
+    __asm__ __volatile__(
+        "aamula x0,%1,x0"
+        :
+        :
+    );
+}
+static void aamul_31() {
+    __asm__ __volatile__(
+        "aamuld x0,%1,x0"
+        :
+        :
+    );
+}
+static void aamul_1221() {
+    __asm__ __volatile__(
+        "aamulbc x0,%1,x0"
+        :
+        :
+    );
+}
+static void triadd_012() {
+    __asm__ __volatile__(
+        "triadda x0,%1,x0"
+        :
+        :
+    );
+}
+static void triadd_321() {
+    __asm__ __volatile__(
+        "triaddb x0,%1,x0"
+        :
+        :
+    );
+}
+static void oacc() {
+    __asm__ __volatile__(
+        "oacc x0,%1,x0"
+        :
+        :
+    );
 }
