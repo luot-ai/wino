@@ -78,10 +78,10 @@ void convolutional_winograd5(float* transformed_g, float* d, float* result, int 
         {
             temp_U_c = c * height_col_width_col_16;
             // float* ker_addr = nn * channels * 16 + c * 16 + transformed_g;
-            // ld_tile4(ker_addr[0]);
-            // ld_tile5(ker_addr[4]);
-            // ld_tile6(ker_addr[8]);
-            // ld_tile7(ker_addr[12]);
+            // ld_tile4(ker_addr);
+            // ld_tile5(ker_addr+4);
+            // ld_tile6(ker_addr+8);
+            // ld_tile7(ker_addr+12);
             for (int h = 0; h < height_col; h++) {
                 temp_U_h = h * width_col_16;
                 temp_d_h = h * width_col_4;
@@ -96,11 +96,11 @@ void convolutional_winograd5(float* transformed_g, float* d, float* result, int 
 
 void winograd5_2d_custom(float* d, float* result) {
 
-    ld_tile0(d[0]);
-    ld_tile1(d[4]);
-    ld_tile2(d[8]);
-    ld_tile3(d[12]);
-    ld_tile8(result[0]);
+    ld_tile0(d);
+    ld_tile1(d+4);
+    ld_tile2(d+8);
+    ld_tile3(d+12);
+    ld_tile8(result);
 
     aamul_02();
     aamul_1221();
@@ -109,75 +109,75 @@ void winograd5_2d_custom(float* d, float* result) {
     triadd_321();
     oacc();
 
-    wb_tile(*result);
+    wb_tile(result);
 }
 
-static void ld_tile0(int addr){
+static void ld_tile0(float* addr){
 	__asm__ __volatile__(
-        "ldtilea x0,%1,x0"
+        "ldtilea x0,%0,x0"
 		:
 		:"r"(addr)
 		);
 }
-static void ld_tile1(int addr){
+static void ld_tile1(float* addr){
 	__asm__ __volatile__(
-        "ldtileb x0,%1,x0"
+        "ldtileb x0,%0,x0"
 		:
 		:"r"(addr)
 		);
 }
-static void ld_tile2(int addr) {
+static void ld_tile2(float* addr) {
     __asm__ __volatile__(
-        "ldtilec x0,%1,x0"
+        "ldtilec x0,%0,x0"
         :
         :"r"(addr)
     );
 }
-static void ld_tile3(int addr) {
+static void ld_tile3(float* addr) {
     __asm__ __volatile__(
-        "ldtiled x0,%1,x0"
+        "ldtiled x0,%0,x0"
         :
         :"r"(addr)
     );
 }
-static void ld_tile4(int addr) {
+static void ld_tile4(float* addr) {
     __asm__ __volatile__(
-        "ldtilee x0,%1,x0"
+        "ldtilee x0,%0,x0"
         :
         :"r"(addr)
     );
 }
-static void ld_tile5(int addr) {
+static void ld_tile5(float* addr) {
     __asm__ __volatile__(
-        "ldtilef x0,%1,x0"
+        "ldtilef x0,%0,x0"
         :
         :"r"(addr)
     );
 }
-static void ld_tile6(int addr) {
+static void ld_tile6(float* addr) {
     __asm__ __volatile__(
-        "ldtileg x0,%1,x0"
+        "ldtileg x0,%0,x0"
         :
         :"r"(addr)
     );
 }
-static void ld_tile7(int addr) {
+static void ld_tile7(float* addr) {
     __asm__ __volatile__(
-        "ldtileh x0,%1,x0"
+        "ldtileh x0,%0,x0"
         :
         :"r"(addr)
     );
 }
-static void ld_tile8(int addr) {
+static void ld_tile8(float* addr) {
     __asm__ __volatile__(
-        "ldtileo x0,%1,x0"
+        "ldtileo x0,%0,x0"
         :
         :"r"(addr)
     );
 }
-static void wb_tile(int addr) {
+static void wb_tile(float* addr) {
     __asm__ __volatile__(
-        "wbtile x0,%1,x0"
+        "wbtile x0,%0,x0"
         :
         :"r"(addr)
     );
@@ -185,42 +185,42 @@ static void wb_tile(int addr) {
 
 static void aamul_02() {
     __asm__ __volatile__(
-        "aamula x0,%1,x0"
+        "aamula x0,x0,x0"
         :
         :
     );
 }
 static void aamul_31() {
     __asm__ __volatile__(
-        "aamuld x0,%1,x0"
+        "aamuld x0,x0,x0"
         :
         :
     );
 }
 static void aamul_1221() {
     __asm__ __volatile__(
-        "aamulbc x0,%1,x0"
+        "aamulbc x0,x0,x0"
         :
         :
     );
 }
 static void triadd_012() {
     __asm__ __volatile__(
-        "triadda x0,%1,x0"
+        "triadda x0,x0,x0"
         :
         :
     );
 }
 static void triadd_321() {
     __asm__ __volatile__(
-        "triaddb x0,%1,x0"
+        "triaddb x0,x0,x0"
         :
         :
     );
 }
 static void oacc() {
     __asm__ __volatile__(
-        "oacc x0,%1,x0"
+        "oacc x0,x0,x0"
         :
         :
     );

@@ -4,18 +4,18 @@
 void winograd5_2d(float* U, float* d, float* result);
 void convolutional_winograd5(float* transformed_g, float* d, float* result, int height, int width, int channels, int n,
                              int m, int r);
-void winograd5_2d_custom(float* U, float* d, float* result);
+void winograd5_2d_custom(float* d, float* result);
 
-static void ld_tile0(int addr);
-static void ld_tile1(int addr);
-static void ld_tile2(int addr);
-static void ld_tile3(int addr);
-static void ld_tile4(int addr);
-static void ld_tile5(int addr);
-static void ld_tile6(int addr);
-static void ld_tile7(int addr);
-static void ld_tile8(int addr);
-static void wb_tile(int addr);
+static void ld_tile0(float* addr);
+static void ld_tile1(float* addr);
+static void ld_tile2(float* addr);
+static void ld_tile3(float* addr);
+static void ld_tile4(float* addr);
+static void ld_tile5(float* addr);
+static void ld_tile6(float* addr);
+static void ld_tile7(float* addr);
+static void ld_tile8(float* addr);
+static void wb_tile(float* addr);
 static void aamul_02();
 static void aamul_31();
 static void aamul_1221();

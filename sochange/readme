@@ -1,0 +1,5 @@
+将opcodes.txt放入rvtool中的opcode后运行脚本可以得到一系列二元组
+二元组放入rv-opc.h
+新增一些东西到rv-opc.c
+在build-binutils-linux中单独编译
+[该目录下已有 rvopc 源文件和头文件，新环境下替换即可]
