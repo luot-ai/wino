@@ -5,7 +5,7 @@ void winograd5_2d(float* U, float* d, float* result);
 void convolutional_winograd5(float* transformed_g, float* d, float* result, int height, int width, int channels, int n,
                              int m, int r);
 void winograd5_2d_custom(float* d, float* result);
-
+void test_inline(float* d);
 static void ld_tile0(float* addr);
 static void ld_tile1(float* addr);
 static void ld_tile2(float* addr);

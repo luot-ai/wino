@@ -8,7 +8,7 @@
  */
 #include "winograd5.h"
 #include "common.h"
-//#include "gem5/m5ops.h"
+#include "gem5/m5ops.h"
 
 void winograd5_2d(float* U, float* d, float* result) {
     float BTd[16] = {0};
@@ -92,6 +92,16 @@ void convolutional_winograd5(float* transformed_g, float* d, float* result, int 
             }
         }
     }
+}
+
+void test_inline(float* d) {
+    m5_dump_reset_stats(0,0);
+    ld_tile8(d);
+    // wb_tile(d);
+    // for (int i = 0; i < 4; i++) {
+    //    printf("%f ", d[i]);
+    // }
+    m5_dump_reset_stats(0,0);
 }
 
 void winograd5_2d_custom(float* d, float* result) {
