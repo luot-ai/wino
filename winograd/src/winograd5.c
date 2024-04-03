@@ -94,13 +94,34 @@ void convolutional_winograd5(float* transformed_g, float* d, float* result, int 
     }
 }
 
-void test_inline(float* d) {
+void test_inline1(float* d) {
     m5_dump_reset_stats(0,0);
     ld_tile8(d);
-    // wb_tile(d);
-    // for (int i = 0; i < 4; i++) {
-    //    printf("%f ", d[i]);
-    // }
+    m5_dump_reset_stats(0,0);
+    wb_tile(d);
+    m5_dump_reset_stats(0,0);
+    for (int i = 0; i < 4; i++) {
+       printf("%f ", d[i]);
+    }
+    m5_dump_reset_stats(0,0);
+}
+
+void test_inline2(float* d,float* g,float* result1,float* result2) {
+    m5_dump_reset_stats(0,0);
+    printf("hello");
+    winograd5_2d(g,d,result1);
+    for (int i = 0; i < 4; i++) {
+       printf("%f ", result1[i]);
+    }
+    m5_dump_reset_stats(0,0);
+    ld_tile4(g);
+    ld_tile5(g+4);
+    ld_tile6(g+8);
+    ld_tile7(g+12);
+    winograd5_2d_custom(d,result2);
+    for (int i = 0; i < 4; i++) {
+       printf("%f ", result2[i]);
+    }
     m5_dump_reset_stats(0,0);
 }
 
