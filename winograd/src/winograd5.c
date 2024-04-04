@@ -15,7 +15,22 @@ void winograd5_2d(float* U, float* d, float* result) {
     float V[16] = {0};
     float UV[16] = {0};
     float ATUV[8] = {0};
-
+    for (int i = 0; i<4;i++){
+        printf("ld_vec %i :",i);
+        for (int j =0 ; j<4;j++)
+        {
+            printf("%f,",d[i*4+j]);
+        }
+        printf("\n");
+    }
+    for (int i = 0; i<4;i++){
+        printf("kernel_vec %i :",i);
+        for (int j =0 ; j<4;j++)
+        {
+            printf("%f,",U[i*4+j]);
+        }
+        printf("\n");
+    }
     // dot(BT, 4, 4, d, 4, 4, BTd);
     for (int i = 0; i < 4; i++)
         BTd[i] = d[0 + i] - d[8 + i];
@@ -39,6 +54,14 @@ void winograd5_2d(float* U, float* d, float* result) {
     // for (int i=0;i<16;i++)
     //     UV[i]=U[i]*V[i];
     multi(U, 4, 4, V, 4, 4, UV);
+    for (int i = 0; i<4;i++){
+        printf("vec %i :",i);
+        for (int j =0 ; j<4;j++)
+        {
+            printf("%f,",UV[i*4+j]);
+        }
+        printf("\n");
+    }
 
     // dot(AT, 2, 4, UV, 4, 4, ATUV);
     for (int i = 0; i < 4; i++)
@@ -46,6 +69,14 @@ void winograd5_2d(float* U, float* d, float* result) {
     for (int i = 0; i < 4; i++)
         ATUV[4 + i] = UV[4 + i] - UV[8 + i] - UV[12 + i];
 
+    for (int i = 0; i<2;i++){
+        printf("atuv vec %i :",i);
+        for (int j =0 ; j<4;j++)
+        {
+            printf("%f,",ATUV[i*4+j]);
+        }
+        printf("\n");
+    }
     result[0] += (ATUV[0] + ATUV[1] + ATUV[2]);
     result[2] += (ATUV[4] + ATUV[5] + ATUV[6]);
     result[1] += (ATUV[1] - ATUV[2] - ATUV[3]);
@@ -108,7 +139,9 @@ void test_inline1(float* d) {
 
 void test_inline2(float* d,float* g,float* result1,float* result2) {
     m5_dump_reset_stats(0,0);
-    printf("hello");
+    // for (int i = 0; i < 4; i++) {
+    //    printf("%f ", result1[i]);
+    // }
     winograd5_2d(g,d,result1);
     for (int i = 0; i < 4; i++) {
        printf("%f ", result1[i]);
@@ -118,6 +151,9 @@ void test_inline2(float* d,float* g,float* result1,float* result2) {
     ld_tile5(g+4);
     ld_tile6(g+8);
     ld_tile7(g+12);
+    // for (int i = 0; i < 4; i++) {
+    //    printf("%f ", result2[i]);
+    // }
     winograd5_2d_custom(d,result2);
     for (int i = 0; i < 4; i++) {
        printf("%f ", result2[i]);
@@ -128,14 +164,14 @@ void test_inline2(float* d,float* g,float* result1,float* result2) {
 void winograd5_2d_custom(float* d, float* result) {
 
     ld_tile0(d);
+    ld_tile3(d+12);
     ld_tile1(d+4);
     ld_tile2(d+8);
-    ld_tile3(d+12);
     ld_tile8(result);
 
     aamul_02();
-    aamul_1221();
     aamul_31();
+    aamul_1221();
     triadd_012();
     triadd_321();
     oacc();
