@@ -80,7 +80,6 @@ void winograd5_2d(float* U, float* d, float* result) {
     result[3] += (ATUV[5] - ATUV[6] - ATUV[7]);
 
 }
-
 void convolutional_winograd5(float* transformed_g, float* d, float* result, int height, int width, int channels, int n,
                              int m, int r) {
     int height_col = (height - 2) / m;  //纵坐标上有多少个tile
@@ -101,8 +100,39 @@ void convolutional_winograd5(float* transformed_g, float* d, float* result, int 
         for (int c = 0; c < channels; c++)  //卷积核通道循环
         {
             temp_U_c = c * height_col_width_col_16;
+            for (int h = 0; h < height_col; h++) {
+                temp_U_h = h * width_col_16;
+                temp_d_h = h * width_col_4;
+                for (int w = 0; w < width_col; w++)
+                    winograd5_2d(nn * channels * 16 + c * 16 + transformed_g, temp_U_c + temp_U_h + w * 16 + d,
+                                 temp_d_nn + temp_d_h + w * 4 + result);  
+            }
+        }
+    }
+}
+
+void convolutional_winograd5_cus(float* transformed_g, float* d, float* result, int height, int width, int channels, int n,
+                             int m, int r) {
+    int height_col = (height - 2) / m;  //纵坐标上有多少个tile
+    int width_col = (width - 2) / m;    //横坐标上有多少个tile
+
+    int width_col_16 = width_col * 16;
+    int height_col_width_col_16 = height_col * width_col_16;
+    int channels_height_col_width_col_16 = channels * height_col_width_col_16;
+    int width_col_4 = width_col * 4;
+    int height_col_width_col_4 = height_col * width_col_4;
+    // int channels_height_col_width_col_4 = channels * height_col_width_col_4;
+    int temp_U_nn, temp_U_c, temp_U_h;
+    int temp_d_nn, temp_d_c, temp_d_h;
+
+    for (int nn = 0; nn < n; nn++)  //卷积核个数循环
+    {
+        temp_d_nn = nn * height_col_width_col_4;
+        for (int c = 0; c < channels; c++)  //卷积核通道循环
+        {
+            temp_U_c = c * height_col_width_col_16;
             float* ker_addr = nn * channels * 16 + c * 16 + transformed_g;
-            m5_dump_reset_stats(0,0);
+            //m5_dump_reset_stats(0,0);
             ld_tile4(ker_addr);
             ld_tile5(ker_addr+4);
             ld_tile6(ker_addr+8);
@@ -112,8 +142,6 @@ void convolutional_winograd5(float* transformed_g, float* d, float* result, int 
                 temp_d_h = h * width_col_4;
                 for (int w = 0; w < width_col; w++)
                     winograd5_2d_custom(temp_U_c + temp_U_h + w * 16 + d,temp_d_nn + temp_d_h + w * 4 + result);
-                    // winograd5_2d(nn * channels * 16 + c * 16 + transformed_g, temp_U_c + temp_U_h + w * 16 + d,
-                    //              temp_d_nn + temp_d_h + w * 4 + result);  
             }
         }
     }
