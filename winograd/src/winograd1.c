@@ -8,14 +8,15 @@
  */
 #include "winograd1.h"
 #include "common.h"
+#include "im2col.h"
 //#include "gem5/m5ops.h"
 
 void im2col_winograd1(float* data_im, int channels, int height, int width, int ksize, int stride, int m, int r,
-                      float* data_col) {
+                      float* data_col, int pad) {
     assert(ksize == r);
     int tile = m + r - 1;               //每个tile的尺寸
-    int height_col = (height - 2) / m;  //纵坐标上有多少个tile
-    int width_col = (width - 2) / m;    //横坐标上有多少个tile
+    int height_col = (height + 2 * pad - 2) / m;  //纵坐标上有多少个tile
+    int width_col = (width + 2 * pad - 2) / m;    //横坐标上有多少个tile
     int step = tile - (r - stride);     //相邻tile之间首元素的距离
 
     // 先乘好下面这些变量省的for循环里再重复计算
@@ -29,8 +30,27 @@ void im2col_winograd1(float* data_im, int channels, int height, int width, int k
             for (int w = 0; w < width_col; w++)     //输入图像里按行遍历每个tile
                 for (int i = 0; i < tile; i++)      //按列遍历每个tile里的行
                     for (int j = 0; j < tile; j++)  //按行遍历每个tile的元素
-                        data_col[c * height_width_col_tile2 + h * width_col_tile2 + w * tile2 + i * tile + j] =
-                            data_im[c * height_width + h * step_width + w * step + i * width + j];
+                    {
+                        int row = h*step+i;
+                        int col = w*step+j;
+                        row -= pad;
+                        col -= pad;
+                        int im_index = col + width*(row + height*c);
+                        int col_index = c * height_width_col_tile2 + h * width_col_tile2 + w * tile2 + i * tile + j;
+                        //printf("idx%d:",col_index);
+                        if (row < 0 || col < 0 || row >= height || col >= width) 
+                        {
+                            data_col[col_index]=0;
+                            //printf("%f\n",data_col[col_index]);
+                        }
+                        else 
+                        {
+                            data_col[col_index] = data_im[im_index];
+                            //printf("%f\n",data_col[col_index]);
+                        }
+                        //im2col_get_pixel(data_im,height,width,channels,row,col,c,0);
+                            //data_im[c * height_width + h * step_width + w * step + i * width + j];
+                    }
 }
 void winograd1_2d(float* U, float* d, float* result) {
     // float g[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
@@ -89,8 +109,8 @@ void convolutional_winograd1(float* g, float* d, float* result, int height, int 
     }
 }
 void col2im_winograd1(float* temp_c, int n, int height, int width, int ksize, int stride, int pad, int m, float* c) {
-    int height_col = (height - 2) / m;  //纵坐标上有多少个tile
-    int width_col = (width - 2) / m;    //横坐标上有多少个tile
+    int height_col = (height - 2 + 2 * pad) / m;  //纵坐标上有多少个tile
+    int width_col = (width - 2 + 2* pad) / m;    //横坐标上有多少个tile
 
     int height_map = (height + 2 * pad - ksize) / stride + 1;
     int width_map = (width + 2 * pad - ksize) / stride + 1;

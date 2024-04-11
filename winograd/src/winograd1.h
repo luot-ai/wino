@@ -2,7 +2,7 @@
 #define __WINOGRAD1_H__
 
 void im2col_winograd1(float* data_im, int channels, int height, int width, int ksize, int stride, int m, int r,
-                      float* data_col);
+                      float* data_col,int pad);
 void winograd1_2d(float* U, float* d, float* result);
 void convolutional_winograd1(float* g, float* d, float* result, int height, int width, int channels, int n, int m,
                              int r);

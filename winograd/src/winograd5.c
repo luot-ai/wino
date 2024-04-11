@@ -81,9 +81,9 @@ void winograd5_2d(float* U, float* d, float* result) {
 
 }
 void convolutional_winograd5(float* transformed_g, float* d, float* result, int height, int width, int channels, int n,
-                             int m, int r) {
-    int height_col = (height - 2) / m;  //纵坐标上有多少个tile
-    int width_col = (width - 2) / m;    //横坐标上有多少个tile
+                             int m, int r ,int pad) {
+    int height_col = (height - 2 + 2 * pad) / m;  //纵坐标上有多少个tile
+    int width_col = (width - 2 + 2 * pad) / m;    //横坐标上有多少个tile
 
     int width_col_16 = width_col * 16;
     int height_col_width_col_16 = height_col * width_col_16;
@@ -112,10 +112,12 @@ void convolutional_winograd5(float* transformed_g, float* d, float* result, int 
 }
 
 void convolutional_winograd5_cus(float* transformed_g, float* d, float* result, int height, int width, int channels, int n,
-                             int m, int r) {
-    int height_col = (height - 2) / m;  //纵坐标上有多少个tile
-    int width_col = (width - 2) / m;    //横坐标上有多少个tile
-
+                             int m, int r ,int pad) {
+                                
+    int height_col = (height - 2 + 2*pad) / m;  //纵坐标上有多少个tile
+    //printf("height_col = %d\n",height_col);
+    int width_col = (width - 2 + 2*pad) / m;    //横坐标上有多少个tile
+    //printf("width_col = %d\n",width_col);
     int width_col_16 = width_col * 16;
     int height_col_width_col_16 = height_col * width_col_16;
     int channels_height_col_width_col_16 = channels * height_col_width_col_16;
@@ -141,7 +143,12 @@ void convolutional_winograd5_cus(float* transformed_g, float* d, float* result, 
                 temp_U_h = h * width_col_16;
                 temp_d_h = h * width_col_4;
                 for (int w = 0; w < width_col; w++)
+                {
+                    //printf("idx=%d\n",temp_d_nn + temp_d_h + w * 4);
                     winograd5_2d_custom(temp_U_c + temp_U_h + w * 16 + d,temp_d_nn + temp_d_h + w * 4 + result);
+                    //printf("%d:%f",h*width_col+w,result[2]);
+                }
+                    
             }
         }
     }
@@ -165,6 +172,7 @@ void test_inline2(float* d,float* g,float* result1,float* result2) {
     //    printf("%f ", result1[i]);
     // }
     winograd5_2d(g,d,result1);
+    m5_dump_reset_stats(0,0);
     for (int i = 0; i < 4; i++) {
        printf("%f ", result1[i]);
     }
@@ -177,13 +185,16 @@ void test_inline2(float* d,float* g,float* result1,float* result2) {
     //    printf("%f ", result2[i]);
     // }
     winograd5_2d_custom(d,result2);
+    m5_dump_reset_stats(0,0);
     for (int i = 0; i < 4; i++) {
        printf("%f ", result2[i]);
     }
-    m5_dump_reset_stats(0,0);
 }
 
 void winograd5_2d_custom(float* d, float* result) {
+    // for(int i=0;i<16;i++){
+    //     printf("d[%d]=%f\n",i,d[i]);
+    // }
 
     ld_tile0(d);
     ld_tile3(d+12);
@@ -199,6 +210,9 @@ void winograd5_2d_custom(float* d, float* result) {
     oacc();
 
     wb_tile(result);
+        for(int i=0;i<16;i++){
+        //printf("res[%d]=%f\n",i,result[i]);
+    }
 }
 
 static void ld_tile0(float* addr){

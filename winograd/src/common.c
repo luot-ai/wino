@@ -36,6 +36,7 @@ void multi(float* A, int row_A, int col_A, float* B, int row_B, int col_B, float
 void compareResult(float* A, float* B, int len) {
     int correct = -1;
     for (int i = 0; i < len; i++) {
+        //printf("A=%f,B=%f\n",A[i],B[i]);
         if (A[i] != B[i]) {
             correct = i;
             break;
