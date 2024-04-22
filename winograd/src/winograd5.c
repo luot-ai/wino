@@ -215,6 +215,28 @@ void winograd5_2d_custom(float* d, float* result) {
     }
 }
 
+void winograd_2d_cus(float* im, float* kernel, float* ofmap, int h, int w, int c, int n,
+                            int out_w,int out_h, int pad,int stride)
+{
+    int m = 2 ;
+    int r = 3 ;
+    int size = 3 ;
+    float* d_5 = im ;
+    float* g_5 = kernel ;
+    float* transformed_d_5 =
+        (float*)malloc((w - 2 + 2 * pad) / 2 * (h - 2 + 2*pad) / 2 * c * 16 * sizeof(float));  //存储经过im2col的输入feature map
+    float* transformed_g_5 = calloc(n * c * 16, sizeof(float));
+    float* output_temp_5 = calloc(out_w * out_h * n, sizeof(float));
+    transforme_g_winograd2(g_5, transformed_g_5, c, n);
+    im2col_winograd1(d_5, c, h, w, size, stride, 2, 3, transformed_d_5, pad);
+    convolutional_winograd5(transformed_g_5, transformed_d_5, output_temp_5, h, w, c, n, 2, 3,pad);
+    col2im_winograd1(output_temp_5, n, h, w, size, stride, pad, m, ofmap);
+    
+    free(transformed_d_5);
+    free(transformed_g_5);
+    free(output_temp_5);
+}
+
 static void ld_tile0(float* addr){
 	__asm__ __volatile__(
         "ldtilea x0,%0,x0"

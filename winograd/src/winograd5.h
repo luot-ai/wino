@@ -1,6 +1,8 @@
 #ifndef __WINOGRAD5_H__
 #define __WINOGRAD5_H__
 
+void winograd_2d_cus(float* im, float* kernel, float* ofmap, int h, int w, int c, int n,
+                            int out_w,int out_h, int pad,int stride); 
 void winograd5_2d(float* U, float* d, float* result);
 void convolutional_winograd5(float* transformed_g, float* d, float* result, int height, int width, int channels, int n,
                              int m, int r,int pad);
