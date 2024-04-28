@@ -50,30 +50,15 @@ void winograd5_2d(float* U, float* d, float* result) {
     for (int i = 0; i < 4; i++)
         V[3 + i * 4] = BTd[1 + i * 4] - BTd[3 + i * 4];
 
-    for (int i=0;i<16;i++)
-        UV[i]=U[i]*V[i];
-    // for (int i = 0; i<4;i++){
-    //     printf("vec %i :",i);
-    //     for (int j =0 ; j<4;j++)
-    //     {
-    //         printf("%f,",UV[i*4+j]);
-    //     }
-    //     printf("\n");
-    // }
+    // for (int i=0;i<16;i++)
+    //     UV[i]=U[i]*V[i];
+    multi(U, 4, 4, V, 4, 4, UV);
 
     for (int i = 0; i < 4; i++)
         ATUV[i] = UV[0 + i] + UV[4 + i] + UV[8 + i];
     for (int i = 0; i < 4; i++)
         ATUV[4 + i] = UV[4 + i] - UV[8 + i] - UV[12 + i];
 
-    // for (int i = 0; i<2;i++){
-    //     printf("atuv vec %i :",i);
-    //     for (int j =0 ; j<4;j++)
-    //     {
-    //         printf("%f,",ATUV[i*4+j]);
-    //     }
-    //     printf("\n");
-    // }
     result[0] += (ATUV[0] + ATUV[1] + ATUV[2]);
     result[2] += (ATUV[4] + ATUV[5] + ATUV[6]);
     result[1] += (ATUV[1] - ATUV[2] - ATUV[3]);
@@ -144,7 +129,7 @@ void convolutional_winograd5_cus(float* transformed_g, float* d, float* result, 
                 temp_d_h = h * width_col_4;
                 for (int w = 0; w < width_col; w++)
                 {
-                    //printf("idx=%d\n",temp_d_nn + temp_d_h + w * 4);
+                    //printf("idx=%d\n",temp_d_nn + temp_d_h + w * 4); 
                     winograd5_2d_custom(temp_U_c + temp_U_h + w * 16 + d,temp_d_nn + temp_d_h + w * 4 + result);
                     //printf("%d:%f",h*width_col+w,result[2]);
                 }
@@ -196,11 +181,11 @@ void winograd5_2d_custom(float* d, float* result) {
     //     printf("d[%d]=%f\n",i,d[i]);
     // }
 
+    ld_tile8(result);
     ld_tile0(d);
     ld_tile3(d+12);
     ld_tile1(d+4);
     ld_tile2(d+8);
-    ld_tile8(result);
 
     aamul_02();
     aamul_31();
