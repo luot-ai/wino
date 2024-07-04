@@ -53,6 +53,15 @@ void winograd5_2d(float* U, float* d, float* result) {
     // for (int i=0;i<16;i++)
     //     UV[i]=U[i]*V[i];
     multi(U, 4, 4, V, 4, 4, UV);
+    // for (int i= 0; i<4;i++)
+    // {
+    //     printf("group %d : ",i);
+    //     for ( int j=0;j<4;j++)
+    //     {
+    //         printf("%f ",UV[i*4+j]);
+    //     }
+    //     printf("\n");
+    // }
 
     for (int i = 0; i < 4; i++)
         ATUV[i] = UV[0 + i] + UV[4 + i] + UV[8 + i];
@@ -124,6 +133,7 @@ void convolutional_winograd5_cus(float* transformed_g, float* d, float* result, 
             ld_tile5(ker_addr+4);
             ld_tile6(ker_addr+8);
             ld_tile7(ker_addr+12);
+            //m5_dump_reset_stats(0,0);
             for (int h = 0; h < height_col; h++) {
                 temp_U_h = h * width_col_16;
                 temp_d_h = h * width_col_4;
@@ -152,16 +162,16 @@ void test_inline1(float* d) {
 }
 
 void test_inline2(float* d,float* g,float* result1,float* result2) {
-    m5_dump_reset_stats(0,0);
+    //m5_dump_reset_stats(0,0);
     // for (int i = 0; i < 4; i++) {
     //    printf("%f ", result1[i]);
     // }
     winograd5_2d(g,d,result1);
-    m5_dump_reset_stats(0,0);
+    //m5_dump_reset_stats(0,0);
     for (int i = 0; i < 4; i++) {
        printf("%f ", result1[i]);
     }
-    m5_dump_reset_stats(0,0);
+    //m5_dump_reset_stats(0,0);
     ld_tile4(g);
     ld_tile5(g+4);
     ld_tile6(g+8);
@@ -180,7 +190,7 @@ void winograd5_2d_custom(float* d, float* result) {
     // for(int i=0;i<16;i++){
     //     printf("d[%d]=%f\n",i,d[i]);
     // }
-
+    //m5_dump_reset_stats(0,0);
     ld_tile8(result);
     ld_tile0(d);
     ld_tile3(d+12);
@@ -189,7 +199,8 @@ void winograd5_2d_custom(float* d, float* result) {
 
     aamul_02();
     aamul_31();
-    aamul_1221();
+    aamul_12();
+    aamul_21();
     triadd_012();
     triadd_321();
     oacc();
@@ -307,6 +318,21 @@ static void aamul_31() {
         :
     );
 }
+static void aamul_12() {
+    __asm__ __volatile__(
+        "aamulb x0,x0,x0"
+        :
+        :
+    );
+}
+static void aamul_21() {
+    __asm__ __volatile__(
+        "aamulc x0,x0,x0"
+        :
+        :
+    );
+}
+
 static void aamul_1221() {
     __asm__ __volatile__(
         "aamulbc x0,x0,x0"

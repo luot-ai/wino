@@ -23,6 +23,8 @@ static void ld_tile8(float* addr);
 static void wb_tile(float* addr);
 static void aamul_02();
 static void aamul_31();
+static void aamul_12();
+static void aamul_21();
 static void aamul_1221();
 static void triadd_012();
 static void triadd_321();
