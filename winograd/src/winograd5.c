@@ -206,9 +206,6 @@ void winograd5_2d_custom(float* d, float* result) {
     oacc();
 
     wb_tile(result);
-        for(int i=0;i<16;i++){
-        //printf("res[%d]=%f\n",i,result[i]);
-    }
 }
 
 void winograd_2d_cus(float* im, float* kernel, float* ofmap, int h, int w, int c, int n,
@@ -223,11 +220,12 @@ void winograd_2d_cus(float* im, float* kernel, float* ofmap, int h, int w, int c
         (float*)malloc((w - 2 + 2 * pad) / 2 * (h - 2 + 2*pad) / 2 * c * 16 * sizeof(float));  //存储经过im2col的输入feature map
     float* transformed_g_5 = calloc(n * c * 16, sizeof(float));
     float* output_temp_5 = calloc(out_w * out_h * n, sizeof(float));
+    m5_dump_reset_stats(0,0);
     transforme_g_winograd2(g_5, transformed_g_5, c, n);
     im2col_winograd1(d_5, c, h, w, size, stride, 2, 3, transformed_d_5, pad);
-    convolutional_winograd5(transformed_g_5, transformed_d_5, output_temp_5, h, w, c, n, 2, 3,pad);
+    convolutional_winograd5_cus(transformed_g_5, transformed_d_5, output_temp_5, h, w, c, n, 2, 3,pad);
     col2im_winograd1(output_temp_5, n, h, w, size, stride, pad, m, ofmap);
-    
+    m5_dump_reset_stats(0,0);
     free(transformed_d_5);
     free(transformed_g_5);
     free(output_temp_5);
