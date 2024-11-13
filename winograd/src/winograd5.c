@@ -15,22 +15,7 @@ void winograd5_2d(float* U, float* d, float* result) {
     float V[16] = {0};
     float UV[16] = {0};
     float ATUV[8] = {0};
-    // for (int i = 0; i<4;i++){
-    //     printf("ld_vec %i :",i);
-    //     for (int j =0 ; j<4;j++)
-    //     {
-    //         printf("%f,",d[i*4+j]);
-    //     }
-    //     printf("\n");
-    // }
-    // for (int i = 0; i<4;i++){
-    //     printf("kernel_vec %i :",i);
-    //     for (int j =0 ; j<4;j++)
-    //     {
-    //         printf("%f,",U[i*4+j]);
-    //     }
-    //     printf("\n");
-    // }
+
 
     for (int i = 0; i < 4; i++)
         BTd[i] = d[0 + i] - d[8 + i];
@@ -112,6 +97,67 @@ void convolutional_winograd5_cus(float* transformed_g, float* d, float* result, 
     //printf("height_col = %d\n",height_col);
     int width_col = (width - 2 + 2*pad) / m;    //横坐标上有多少个tile
     //printf("width_col = %d\n",width_col);
+    int thw = height_col * width_col ;
+    int width_col_16 = width_col * 16;
+    int height_col_width_col_16 = height_col * width_col_16;
+    int channels_height_col_width_col_16 = channels * height_col_width_col_16;
+    int width_col_4 = width_col * 4;
+    int height_col_width_col_4 = height_col * width_col_4;
+    // int channels_height_col_width_col_4 = channels * height_col_width_col_4;
+    int temp_U_nn, temp_U_c, temp_U_h;
+    int temp_d_nn, temp_d_c, temp_d_h;
+
+
+    int wcnt =0;
+    int daddr = 0;
+    int oaddr = 0 ;
+    for (int nn = 0; nn < n; nn++)  //卷积核个数循环
+    {
+        for (int c = 0; c < channels; c++)  //卷积核通道循环
+        {
+            float* ker_addr = nn * channels * 16 + c * 16 + transformed_g;
+            //m5_dump_reset_stats(0,0);
+            ld_tile4(ker_addr);
+            ld_tile5(ker_addr+4);
+            ld_tile6(ker_addr+8);
+            ld_tile7(ker_addr+12);
+            //m5_dump_reset_stats(0,0);
+            temp_U_h = 0 ;
+            temp_d_h =  0;
+            m5_dump_reset_stats(0,0);
+            float* dinline = daddr +d;
+            for (int hw=0 ; hw < thw ; hw ++)
+            {
+                ld_tile0(daddr +d);
+                ld_tile1(daddr +d + 4);
+                ld_tile2(daddr +d + 8);
+                ld_tile3(daddr +d + 12);
+                aamul_02();
+                aamul_12();
+                aamul_21();
+                aamul_31();
+                triadd_012();
+                ld_tile8(oaddr + result);
+                triadd_321();
+                daddr += 16;
+                oacc();
+                wb_tile(oaddr + result);
+                oaddr += 4;
+            }
+            m5_dump_reset_stats(0,0);
+            oaddr -= height_col_width_col_4;
+        }
+        oaddr+=height_col_width_col_4;
+    }
+}
+
+void convolutional_winograd5_cus_fuse(float* transformed_g, float* d, float* result, int height, int width, int channels, int n,
+                             int m, int r ,int pad) {
+                                
+    int height_col = (height - 2 + 2*pad) / m;  //纵坐标上有多少个tile
+    //printf("height_col = %d\n",height_col);
+    int width_col = (width - 2 + 2*pad) / m;    //横坐标上有多少个tile
+    //printf("width_col = %d\n",width_col);
     int width_col_16 = width_col * 16;
     int height_col_width_col_16 = height_col * width_col_16;
     int channels_height_col_width_col_16 = channels * height_col_width_col_16;
@@ -129,21 +175,25 @@ void convolutional_winograd5_cus(float* transformed_g, float* d, float* result, 
             temp_U_c = c * height_col_width_col_16;
             float* ker_addr = nn * channels * 16 + c * 16 + transformed_g;
             //m5_dump_reset_stats(0,0);
+            m5_dump_reset_stats(0,0);
             ld_tile4(ker_addr);
             ld_tile5(ker_addr+4);
             ld_tile6(ker_addr+8);
             ld_tile7(ker_addr+12);
+            //ld_tile0(d);
+            m5_dump_reset_stats(0,0);
             //m5_dump_reset_stats(0,0);
             for (int h = 0; h < height_col; h++) {
-                temp_U_h = h * width_col_16;
+                temp_U_h = h * width *2;
                 temp_d_h = h * width_col_4;
+                m5_dump_reset_stats(0,0);
                 for (int w = 0; w < width_col; w++)
                 {
-                    //printf("idx=%d\n",temp_d_nn + temp_d_h + w * 4); 
-                    winograd5_2d_custom(temp_U_c + temp_U_h + w * 16 + d,temp_d_nn + temp_d_h + w * 4 + result);
+                    m5_dump_reset_stats(0,0);
+                    printf("width=%d\n",temp_U_c + temp_U_h + w * 2); 
+                    winograd5_2d_custom_fuse(temp_U_c + temp_U_h + w * 2 + d,temp_d_nn + temp_d_h + w * 4 + result,width);
                     //printf("%d:%f",h*width_col+w,result[2]);
                 }
-                    
             }
         }
     }
@@ -186,21 +236,45 @@ void test_inline2(float* d,float* g,float* result1,float* result2) {
     }
 }
 
-void winograd5_2d_custom(float* d, float* result) {
+void winograd5_2d_custom_fuse(float* d, float* result, int width) {
     // for(int i=0;i<16;i++){
     //     printf("d[%d]=%f\n",i,d[i]);
     // }
     //m5_dump_reset_stats(0,0);
     ld_tile8(result);
     ld_tile0(d);
-    ld_tile3(d+12);
-    ld_tile1(d+4);
-    ld_tile2(d+8);
+    ld_tile3(d+6);
+    ld_tile1(d);
+    ld_tile2(d);
 
     aamul_02();
     aamul_31();
     aamul_12();
     aamul_21();
+    triadd_012();
+    triadd_321();
+    oacc();
+
+    wb_tile(result);
+}
+
+
+void winograd5_2d_custom(float* d, float* result) {
+    // for(int i=0;i<16;i++){
+    //     printf("d[%d]=%f\n",i,d[i]);
+    // }
+    //m5_dump_reset_stats(0,0);
+    
+    ld_tile0(d);
+    ld_tile1(d+4);
+    ld_tile2(d+8);
+    ld_tile3(d+12);
+    
+    aamul_02();
+    aamul_12();
+    aamul_21();
+    aamul_31();
+    ld_tile8(result);
     triadd_012();
     triadd_321();
     oacc();

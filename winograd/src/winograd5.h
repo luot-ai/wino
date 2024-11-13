@@ -7,8 +7,11 @@ void winograd5_2d(float* U, float* d, float* result);
 void convolutional_winograd5(float* transformed_g, float* d, float* result, int height, int width, int channels, int n,
                              int m, int r,int pad);
 void convolutional_winograd5_cus(float* transformed_g, float* d, float* result, int height, int width, int channels, int n,
-                             int m, int r , int pad);                     
+                             int m, int r , int pad); 
+void convolutional_winograd5_cus_fuse(float* transformed_g, float* d, float* result, int height, int width, int channels, int n,
+                             int m, int r ,int pad);             
 void winograd5_2d_custom(float* d, float* result);
+void winograd5_2d_custom_fuse(float* d, float* result,int width);
 void test_inline1(float* d);
 void test_inline2(float* d,float* g,float* result1,float* result2);
 static void ld_tile0(float* addr);
